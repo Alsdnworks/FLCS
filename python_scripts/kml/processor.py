@@ -189,15 +189,16 @@ def DB_insert(file_name):
 #######################################
 if __name__=='__main__':
     freeze_support()
-#    #kml을 한국좌표 추출해 csv변환
-#    #data/kml/*.kml -> data/kml_csv_kor_only/*.csv
-    with concurrent.futures.ProcessPoolExecutor() as executor:
-        imported_files = glob.glob(base+"/kml/*.kml")
-        executor.map(CSV_cvtr, imported_files)    
-    print('CSV_cvtr Done')
+##    #kml을 한국좌표 추출해 csv변환
+##    #data/kml/*.kml -> data/kml_csv_kor_only/*.csv
+#    with concurrent.futures.ProcessPoolExecutor() as executor:
+#        imported_files = glob.glob(base+"/kml/*.kml")
+#        executor.map(CSV_cvtr, imported_files)    
+#    print('CSV_cvtr Done')
     
     #데이터 필터링 처리해서 WGS84좌표로 GeoJSON 변환
     #data/kml_csv_kor_only/*.csv -> data/geojson/WGS84/*.geojson
+    
     gdf=gpd.read_file(gdfloc).to_crs('epsg:4326') #셰이프파일 위치
     print('gdf load Done')
     imported_files = glob.glob(base+"/kml_csv_kor_only/*result_korea.csv")

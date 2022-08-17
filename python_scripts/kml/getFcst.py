@@ -1,6 +1,5 @@
 import math
 import json
-import googlemaps
 import datetime
 import requests
 import warnings
@@ -34,6 +33,14 @@ if first == 0 :
     ro = math.tan(PI * 0.25 + olat * 0.5)
     ro = re * sf / math.pow(ro, sn)
     first = 1
+    
+# 좌표에대한 주소반환
+def getloc(x, y):
+    global apikey
+    url = 'https://dapi.kakao.com/v2/local/geo/coord2regioncode.json?x={}&y={}'.format(x, y)
+    headers = {"Authorization": "KakaoAK " + 'c923bbeabfad5af84fb4d26b79d5b355'}
+    result= json.loads(str(requests.get(url, headers=headers).text))
+    return result['documents'][0]['address_name']
     
 def mapToGrid(lat, lon):
     ra = math.tan(PI * 0.25 + lat * DEGRAD * 0.5)
@@ -80,21 +87,17 @@ def cord(coord):
     URL=r"https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getUltraSrtNcst?serviceKey=76QKNWkkWUaT1hqtYhBGwbRq2UVAlf5TczXOf5gEHz68d9N32AmMbkl0gtqU5TBuvECZQhhNUj2zTHxgjiGF7w%3D%3D&pageNo=1&numOfRows=1000&dataType=JSON&base_date="+str("".join(ymdh[0:3]))+"&base_time=0000&nx="+str(fct_x)+"&ny="+str(fct_y)
     try:
         jsn = requests.get(URL.format(),verify=False).json()
-        #print(URL)
-        #print(jsn)
+
     except:
         fct_info=dict(WSD="error",VEC="error")
+        print('위도경도'+str(round(coord.x,5)),str(round(coord.y,5)))
+        print(jsn)
     else:    
         fct_info=dict(map(lambda x: (x['category'],x['obsrValue']),jsn['response']['body']['items']['item']))
     finally:        
-        gmaps = googlemaps.Client(key='AIzaSyAcxJTWmScJFuBBsylcl6k4T0_mZST0yto')
-        reverse_geocode_result = gmaps.reverse_geocode((round(coord.y,5), round(coord.x,5)), language='ko')
-        with open('users.json', 'w', encoding='utf-8') as f:
-          json.dump(reverse_geocode_result, f)
-        with open('users.json', 'r', encoding='utf-8') as f:
-            json_object = json.load(f)
+        reverse_geocode_result = getloc(round(coord.x,5),round(coord.y,5))
+
         #print(str("".join(ymdh)))
         #print(str(json_object[0]['formatted_address']))
-        #print(fct_info["VEC"]+fct_info["WSD"])
-        
-        return str(json_object[0]['formatted_address']),wdir_cvtr(fct_info["VEC"]),fct_info["WSD"]
+        print(fct_info["VEC"]+fct_info["WSD"])
+        return str(reverse_geocode_result),wdir_cvtr(fct_info["VEC"]),fct_info["WSD"]
